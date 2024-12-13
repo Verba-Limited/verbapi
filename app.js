@@ -20,6 +20,10 @@ const aiBankingRoutes = require('./routes/aiBankingRoutes');
 const app = express();
 app.use(express.json()); // Parse incoming JSON requests
 
+app.get("/", async (req, res) => {
+    res.send("Welcome to the Verb API!");
+})
+
 // Use Routes
 app.use('/auth', authRoutes);
 app.use('/account', accountRoutes);
