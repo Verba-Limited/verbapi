@@ -26,7 +26,7 @@ const URL_REQUEST = async (url, method, body) => {
     }
 }
 
-export const CreateIndividualCustomer = async (p) => {
+const CreateIndividualCustomer = async (p) => {
     try {
         console.log("createIndividualCustomer request--->", p);
         const requestBody = {
@@ -79,7 +79,7 @@ export const CreateIndividualCustomer = async (p) => {
     }
 }
 
-export const CustomerKYCValidation = async (customerId, p) => {
+const CustomerKYCValidation = async (customerId, p) => {
     try {
         console.log("customerKYCValidation request--->", p);
         const requestBody = {
@@ -125,7 +125,7 @@ export const CustomerKYCValidation = async (customerId, p) => {
     }
 }
 
-export const CreateDepositAccount = async (p) => {
+const CreateDepositAccount = async (p) => {
     try {
         console.log("createDepositAccount request--->", p);
         const requestBody = {
@@ -173,7 +173,7 @@ export const CreateDepositAccount = async (p) => {
     }
 }
 
-export const GetDepositAccountBalance = async (accountId, accountName) => {
+const GetDepositAccountBalance = async (accountId, accountName) => {
     try {
         console.log("getDepositAccountBalance request--->", accountId);
         console.log("getDepositAccountBalance BASE_URL--->", BASE_URL);
@@ -204,5 +204,10 @@ export const GetDepositAccountBalance = async (accountId, accountName) => {
     }
 }
 
-
+module.exports = { 
+    CreateIndividualCustomer, 
+    CustomerKYCValidation,
+    CreateDepositAccount,
+    GetDepositAccountBalance
+}
 
