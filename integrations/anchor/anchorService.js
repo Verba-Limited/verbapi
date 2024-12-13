@@ -5,7 +5,8 @@
 const X_ANCHOR_KEY = "J3w3g.30253a81f968f8c1270ad0f756eb7b1fac40bc14be3f9b5f36b82203896e3617a2ee922c0141f2d8bc64d1712aa200f367cd";
 const BASE_URL = "https://api.sandbox.getanchor.co/api/v1";
 
-export const URL_REQUEST = async (url, method, body) => {
+// export const URL_REQUEST = async (url, method, body) => {
+const URL_REQUEST = async (url, method, body) => {
     let options = {
         method,
         headers: {
@@ -202,4 +203,6 @@ export const GetDepositAccountBalance = async (accountId, accountName) => {
         };
     }
 }
+
+
 
