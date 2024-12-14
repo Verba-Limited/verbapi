@@ -82,6 +82,7 @@ const model = genAI.getGenerativeModel({
            - Don't ask user to provide any extra information when account information cannot be retrieved from server.
            
         3. Send money to registered customers:
+           - transfer {{amount}} naira to {{accountName}}, bank name is {{bankName}}, account number is {{accountNumber}}, my email is {{email}}
            - Ensure security before sending virtual money to customer.
            - Ask for customer PIN before sending.
            - If PIN is not provided, don't send.
