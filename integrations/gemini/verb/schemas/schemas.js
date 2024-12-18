@@ -183,6 +183,43 @@ const sendMoneySchema = {
     },
 };
 
+const beneficiarySchema = {
+    name: "userBeneficiary",
+    description: "Beneficiary of the user",
+    parameters: {
+      type: SchemaType.OBJECT,
+      properties: {     
+        email: {
+            type: SchemaType.STRING,
+            description: "Email Address of the user",
+            nullable: true,
+        },             
+        accountNumber: {
+            type: SchemaType.STRING,
+            description: "Account Number of the beneficiary",
+            nullable: true,
+        },    
+        accountName: {
+            type: SchemaType.STRING,
+            description: "Account Name of the beneficiary",
+            nullable: true,
+        },   
+        bankName: {
+            type: SchemaType.STRING,
+            description: "Bank Name of the beneficiary",
+            nullable: true,
+        }, 
+        nickname: {
+            type: SchemaType.STRING,
+            description: "Nickname Pin of the beneficiary",
+            nullable: true,
+        }, 
+      },
+      required: ["email", "accountNumber", "accountName", "bankName", "nickname"],
+    },
+};
+
 exports.onboardingSchema = onboardingSchema;
 exports.accountSchema = accountSchema;
 exports.sendMoneySchema = sendMoneySchema;
+exports.beneficiarySchema = beneficiarySchema;

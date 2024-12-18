@@ -202,7 +202,12 @@ const retrieveAccountInformation = async (email) => {
 const sendMoneyToCustomer = async (email, amount, accountNumber, accountName, bankName, pin) => {
     try {
         let customerData = {
-            email
+            email,
+            amount,
+            accountNumber,
+            accountName,
+            bankName,
+            pin
         };
         const checkAnchorResponse = await isAnchorData(customerData);
         console.log("checkAnchorResponse--->", checkAnchorResponse);
@@ -212,8 +217,8 @@ const sendMoneyToCustomer = async (email, amount, accountNumber, accountName, ba
             let getBalanceResponse = await GetDepositAccountBalance(accountId, accountName);
             console.log("getBalanceResponse--->", JSON.stringify(getBalanceResponse));
             if(getBalanceResponse.status) {
-                // const returnedAmount = parseFloat(getBalanceResponse.data.data.availableBalance);
-                const returnedAmount = parseFloat(6000);
+                const returnedAmount = parseFloat(getBalanceResponse.data.data.availableBalance);
+                // const returnedAmount = parseFloat(6000);
                 console.log("getBalanceResponse.data.data.availableBalance---->", returnedAmount);
                 if(returnedAmount < parseFloat(amount)) {
                     return {
@@ -255,6 +260,43 @@ const sendMoneyToCustomer = async (email, amount, accountNumber, accountName, ba
     }
 }
 
+const userBeneficiaryInformation = async (email, accountNumber, accountName, bankName, nickname) => {
+    try {
+        let customerData = {
+            email,
+            accountNumber,
+            accountName,
+            bankName,
+            nickname
+        };
+        const checkUserResponse = await isUser(customerData);
+        console.log("checkUserResponse--->", checkUserResponse);
+        if(checkUserResponse === true) {
+            return {
+                status: true,
+                message: "Beneficiary successfully added, you can send money to beneficiary now",
+                data: null
+            };
+        } else {
+            return {
+                status: false,
+                message: "Customer doesn't exist, kindly provide appropriate data",
+                data: null
+            };
+        }
+    } catch (e) {
+        console.log("Error adding beneficiary to customer: ", e);
+        return {
+            status: false,
+            message: "An error occurred while adding beneficiary to account",
+            data: null
+        };
+    }
+}
+
+
+
+
 const registerUserFunctions = {
     onboardUser: ({ firstName, lastName, email, phoneNumber, address, bvn, gender, dateOfBirth, selfie }) => {
       return registerAnchorCustomer(firstName, lastName, email, phoneNumber, address, bvn, gender, dateOfBirth, selfie)
@@ -273,6 +315,14 @@ const sendMoneyFunctions = {
     }
 };
 
+const userBeneficiaryFunctions = {
+    userBeneficiary: ({ email, accountNumber, accountName, bankName, nickname }) => {
+      return userBeneficiaryInformation(email, accountNumber, accountName, bankName, nickname)
+    }
+};
+
+
 exports.registerUserFunctions = registerUserFunctions;
 exports.accountInformationFunctions = accountInformationFunctions;
 exports.sendMoneyFunctions = sendMoneyFunctions;
+exports.userBeneficiaryFunctions = userBeneficiaryFunctions;

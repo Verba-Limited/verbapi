@@ -3,98 +3,53 @@ const genAI = new GoogleGenerativeAI("AIzaSyBWd4uatDjoDjHfE_RAS2KHqhL4cOjGXPQ");
 
 const { onboardingSchema, 
     accountSchema, 
-    sendMoneySchema 
+    sendMoneySchema,
+    beneficiarySchema
 } = require("./schemas/schemas.js");
 
 const {
     registerUserFunctions,
     accountInformationFunctions,
-    sendMoneyFunctions
+    sendMoneyFunctions,
+    userBeneficiaryFunctions
 } = require("./functions/functions.js");
 
-// const sendMoneySchema = {
-//     name: "sendMoney",
-//     description: "Send money to recipient account",
-//     parameters: {
-//       type: SchemaType.OBJECT,
-//       properties: {
-//         firstName: {
-//           type: SchemaType.STRING,
-//           description: "First Name of the customer",
-//           nullable: true,
-//         },       
-//         lastName: {
-//             type: SchemaType.STRING,
-//             description: "Last Name of the customer",
-//             nullable: true,
-//         },      
-//         email: {
-//             type: SchemaType.STRING,
-//             description: "Email Address of the customer",
-//             nullable: true,
-//         },             
-//         accountNumber: {
-//             type: SchemaType.STRING,
-//             description: "Account Number of the recipient",
-//             nullable: true,
-//         },    
-//         accountName: {
-//             type: SchemaType.STRING,
-//             description: "Account Name of the recipient",
-//             nullable: true,
-//         },   
-//         bankName: {
-//             type: SchemaType.STRING,
-//             description: "Bank Name of the recipient",
-//             nullable: true,
-//         }, 
-//         amount: {
-//             type: SchemaType.STRING,
-//             description: "Amount to send to the recipient",
-//             nullable: true,
-//         }, 
-//       },
-//       required: ["firstName", "lastName", "email", "accountNumber", "accountName", "bankName", "amount"],
-//     },
-// };
+const systemMessageInstruction = `
+    You are a virtual assistant for a fintech application called "Verb." Your primary responsibilities include:
+
+    1. Onboarding new customers:
+        - Validate the email supplied and check if the email is already registered.
+        - Validate the bvn supplied and check if the bvn is already registered.
+        - Validate the phoneNumber supplied and check if the phoneNumber is already registered.
+        - If the country is not provided, set it to "NG" by default.
+        - Correct contact address to be an Object with the properties specified in the "address" property
+        - If the address is too long, split it into "Address Line 1" and "Address Line 2." Otherwise, duplicate "Address Line 1" into "Address Line 2."
+        - If the postal code is not provided, use "100001" as the default.
+        - Correct the dateOfBirth format to be YYYY-MM-DD.
+        - Gender is either "Male" or "Female".
+        - Dont validate selfie, If the selfie is not provided or undefined, use "https://placehold.co/600x400/png" as the default.
+        - If deposit account from anchorService is created, retrieve and state the bank name, account name and reveal plainly account number as part of response else the whole process was not successful.
+
+
+    3. Managing customer information:
+        - Retrieve balance information for registered customers.
+        - Currency is represented in Naira.
+        - Don't ask user to provide any extra information when account information cannot be retrieved from server.
+    
+    4. Add Beneficiary to your account:
+        - Add a user as a beneficiary.
+        - Beneficiary information should have account name, account number and bank name.
+        - Beneficiary name can have a nickname.
+
+    Always respond in a clear and concise manner, adhering to the structure defined in the onboardingSchema, accountSchema and sendMoneySchema tools. 
+    Handle errors gracefully, providing helpful suggestions to resolve issues. You should aim to make interactions intuitive and efficient.
+`;
 
 const model = genAI.getGenerativeModel({ 
     model: "gemini-1.5-flash", 
-    systemInstruction: `
-        You are a virtual assistant for a fintech application called "Verb." Your primary responsibilities include:
-
-        1. Onboarding new customers:
-           - Validate the email supplied and check if the email is already registered.
-           - Validate the bvn supplied and check if the bvn is already registered.
-           - Validate the phoneNumber supplied and check if the phoneNumber is already registered.
-           - If the country is not provided, set it to "NG" by default.
-           - Correct contact address to be an Object with the properties specified in the "address" property
-           - If the address is too long, split it into "Address Line 1" and "Address Line 2." Otherwise, duplicate "Address Line 1" into "Address Line 2."
-           - If the postal code is not provided, use "100001" as the default.
-           - Correct the dateOfBirth format to be YYYY-MM-DD.
-           - Gender is either "Male" or "Female".
-           - Dont validate selfie, If the selfie is not provided or undefined, use "https://placehold.co/600x400/png" as the default.
-           - If deposit account from anchorService is created, retrieve and state the bank name, account name and reveal plainly account number as part of response else the whole process was not successful.
-
-        2. Managing customer information:
-           - Retrieve balance information for registered customers.
-           - Currency is represented in Naira.
-           - Don't ask user to provide any extra information when account information cannot be retrieved from server.
-           
-        3. Send money to registered customers:
-           - transfer {{amount}} naira to {{accountName}}, bank name is {{bankName}}, account number is {{accountNumber}}, my email is {{email}}
-           - Ensure security before sending virtual money to customer.
-           - Ask for customer PIN before sending.
-           - If PIN is not provided, don't send.
-           - Assist with sending money to someone else.
-           - Transfer money to registered customer.
-           - Before Transfer, ensure customer balance is more than send amount, if not that is insufficient balance to transfer.
-
-        Always respond in a clear and concise manner, adhering to the structure defined in the onboardingSchema, accountSchema and sendMoneySchema tools. 
-        Handle errors gracefully, providing helpful suggestions to resolve issues. You should aim to make interactions intuitive and efficient.
-    `,
+    systemInstruction: systemMessageInstruction,
     tools: {
-        functionDeclarations: [onboardingSchema, accountSchema, sendMoneySchema],
+        functionDeclarations: [onboardingSchema, accountSchema, sendMoneySchema, beneficiarySchema],
     },
 });
 
@@ -114,7 +69,11 @@ const chat = model.startChat({
       },
       {
         role: "model",
-        parts: [{ text: "Great! Can you please provide amount and email to send money." }],
+        parts: [{ text: "Nice! Can you please send money by providing email, amount, account name, account number, bank name and pin." }],
+      },
+      {
+        role: "model",
+        parts: [{ text: "Cool! Can you please add beneficiary to customer account." }],
       },
     ],
 });
@@ -160,6 +119,18 @@ exports.generateVerbResponse = async (prompt) => {
                     }}]);
                 console.log("Transfer money information response text --->", reslt.response.text());
                 return reslt.response.text();
+            }
+
+            // Handle user beneficiary to account
+            if (userBeneficiaryFunctions[call.name]) {
+                const apiRs = await userBeneficiaryFunctions[call.name](call.args);
+                const resl = await chat.sendMessage([{
+                    functionResponse: {
+                        name: "userBeneficiary",
+                        response: apiRs,
+                    }}]);
+                console.log("User beneficiary information response text --->", resl.response.text());
+                return resl.response.text();
             }
         } catch (error) {
             console.error("Error handling function call:", error);
